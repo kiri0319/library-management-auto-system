@@ -13,14 +13,17 @@ import {
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, verifyOtp } = useAuth();
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
     phoneDigits: "",
     address: "",
   });
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState("register"); // "register" or "verify"
   const [fieldErrors, setFieldErrors] = useState(initialUserFieldErrors());
   const [error, setError] = useState("");
 
@@ -60,9 +63,26 @@ const RegisterPage = () => {
 
     try {
       await register(payload);
-      navigate("/dashboard/student", { replace: true });
+      setStep("verify");
     } catch (submitError) {
       setError(submitError.response?.data?.message || "Registration failed.");
+    }
+  };
+
+  const onVerifyOtp = async (event) => {
+    event.preventDefault();
+    setError("");
+
+    if (!otp.trim()) {
+      setError("OTP is required.");
+      return;
+    }
+
+    try {
+      await verifyOtp({ email: form.email.trim(), otp: otp.trim() });
+      navigate("/dashboard/student", { replace: true });
+    } catch (verifyError) {
+      setError(verifyError.response?.data?.message || "OTP verification failed.");
     }
   };
 
@@ -70,15 +90,21 @@ const RegisterPage = () => {
     <div className="flex flex-col">
       <div className="landing-rise mb-3 flex items-center justify-center">
         <span className="inline-flex rounded-full bg-indigo-50 px-4 py-1 text-xs font-bold uppercase tracking-widest text-indigo-500">
-          Join Us
+          {step === "register" ? "Join Us" : "Verify Email"}
         </span>
       </div>
-      <h2 className="landing-rise landing-delay-1 text-center font-display text-4xl text-slate-900">Registration</h2>
+      <h2 className="landing-rise landing-delay-1 text-center font-display text-4xl text-slate-900">
+        {step === "register" ? "Registration" : "Email Verification"}
+      </h2>
       <p className="landing-rise landing-delay-1 mt-2 text-center text-sm text-slate-500">
-        Create a student account with an instant digital membership ID.
+        {step === "register"
+          ? "Create a student account with an instant digital membership ID."
+          : `We've sent a verification code to ${form.email}. Enter it below to complete your registration.`
+        }
       </p>
 
-      <form className="landing-rise landing-delay-2 mt-8 space-y-4" onSubmit={onSubmit} noValidate>
+      {step === "register" ? (
+        <form className="landing-rise landing-delay-2 mt-8 space-y-4" onSubmit={onSubmit} noValidate>
         <FormField
           label="Full name"
           name="name"
@@ -145,6 +171,17 @@ const RegisterPage = () => {
           </p>
         </div>
 
+        <FormField
+          label="Confirm Password"
+          name="confirmPassword"
+          type="password"
+          value={form.confirmPassword}
+          onChange={onChange}
+          autoComplete="new-password"
+          error={fieldErrors.confirmPassword}
+          required
+        />
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="block">
@@ -198,9 +235,36 @@ const RegisterPage = () => {
         {error ? <p className="text-sm font-medium text-rose-500">{error}</p> : null}
 
         <button type="submit" className="btn-primary mt-4 w-full shadow-lg shadow-indigo-200/50">
-          Create account
+          Send Verification Code
         </button>
       </form>
+      ) : (
+        <form className="landing-rise landing-delay-2 mt-8 space-y-4" onSubmit={onVerifyOtp} noValidate>
+          <FormField
+            label="Verification Code"
+            name="otp"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            placeholder="Enter 6-digit code"
+            autoComplete="one-time-code"
+            required
+          />
+
+          {error ? <p className="text-sm font-medium text-rose-500">{error}</p> : null}
+
+          <button type="submit" className="btn-primary mt-4 w-full shadow-lg shadow-indigo-200/50">
+            Verify & Complete Registration
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStep("register")}
+            className="mt-2 w-full text-sm text-slate-500 hover:text-slate-700"
+          >
+            Back to Registration
+          </button>
+        </form>
+      )}
 
       <p className="landing-rise landing-delay-3 mt-6 text-center text-sm text-slate-500">
         Already registered?{" "}

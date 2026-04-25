@@ -9,6 +9,7 @@ import QrScannerPanel from "../../components/qr/QrScannerPanel";
 import { formatDate } from "../../utils/format";
 
 const BorrowDeskPage = () => {
+  const [statusFilter, setStatusFilter] = useState("All");
   const [students, setStudents] = useState([]);
   const [books, setBooks] = useState([]);
   const [borrows, setBorrows] = useState([]);
@@ -54,6 +55,10 @@ const BorrowDeskPage = () => {
     setReturnForm({ borrowId: "", qrToken: "" });
     loadAll();
   };
+
+  const filteredBorrows = statusFilter === "All"
+    ? borrows
+    : borrows.filter((borrow) => borrow.status === statusFilter);
 
   return (
     <div className="space-y-6">
@@ -176,9 +181,24 @@ const BorrowDeskPage = () => {
         </Panel>
       </div>
 
-      <Panel title="Recent borrow transactions" subtitle="Track active, returned, and overdue records">
+      <Panel
+        title="Recent borrow transactions"
+        subtitle="Track active, returned, and overdue records"
+        action={(
+          <select
+            className="input-field min-w-40"
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+          >
+            <option value="All">All statuses</option>
+            <option value="Active">Active</option>
+            <option value="Overdue">Overdue</option>
+            <option value="Returned">Returned</option>
+          </select>
+        )}
+      >
         <DataTable
-          rows={borrows}
+          rows={filteredBorrows}
           columns={[
             {
               key: "user",

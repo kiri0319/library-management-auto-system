@@ -1,13 +1,15 @@
 const Fine = require("../models/Fine");
-const { getDailyFineRate, getOverdueDays } = require("../utils/dateUtils");
+const { getOverdueDays } = require("../utils/dateUtils");
+const { getRuntimeSettings } = require("./systemSettingsService");
 
-const calculateFineAmount = (dueDate, returnedAt = new Date()) => {
+const calculateFineAmount = async (dueDate, returnedAt = new Date()) => {
+  const runtimeSettings = await getRuntimeSettings();
   const overdueDays = getOverdueDays(dueDate, returnedAt);
-  return overdueDays * getDailyFineRate();
+  return overdueDays * runtimeSettings.dailyFineRate;
 };
 
 const upsertFineForBorrow = async ({ borrow, userId, reason = "Overdue return" }) => {
-  const amount = calculateFineAmount(borrow.dueDate, borrow.returnedAt || new Date());
+  const amount = await calculateFineAmount(borrow.dueDate, borrow.returnedAt || new Date());
 
   if (!amount) {
     return null;

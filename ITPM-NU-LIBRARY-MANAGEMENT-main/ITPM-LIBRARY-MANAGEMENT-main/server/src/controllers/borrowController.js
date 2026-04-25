@@ -7,6 +7,8 @@ const { calculateDueDate, getOverdueDays } = require("../utils/dateUtils");
 const { logActivity } = require("../services/activityService");
 const { createNotification } = require("../services/notificationService");
 const { upsertFineForBorrow } = require("../services/fineService");
+const { getRuntimeSettings } = require("../services/systemSettingsService");
+const { recordProductivityActivity } = require("../services/librarianProductivityService");
 const { getIO } = require("../config/socket");
 
 const safeEmit = (event, payload, room) => {
@@ -35,6 +37,7 @@ const completeReservationIfExists = async (userId, bookId) => {
 };
 
 const createBorrowEntry = async ({ user, book, issuer, ipAddress }) => {
+  const runtimeSettings = await getRuntimeSettings();
   const existingBorrow = await Borrow.findOne({
     user: user._id,
     book: book._id,
@@ -57,7 +60,7 @@ const createBorrowEntry = async ({ user, book, issuer, ipAddress }) => {
     user: user._id,
     book: book._id,
     issuedBy: issuer._id,
-    dueDate: calculateDueDate(),
+    dueDate: calculateDueDate(new Date(), runtimeSettings.borrowPeriodDays),
     qrToken: `BRW-${Date.now()}-${user._id.toString().slice(-4)}-${book._id.toString().slice(-4)}`,
   });
 
@@ -87,6 +90,12 @@ const createBorrowEntry = async ({ user, book, issuer, ipAddress }) => {
     targetId: borrow._id.toString(),
     description: `${issuer.name} issued "${book.title}" to ${user.email}.`,
     ipAddress,
+  });
+
+  await recordProductivityActivity({
+    actor: issuer,
+    activityType: "Issue",
+    count: 1,
   });
 
   safeEmit(
@@ -140,6 +149,7 @@ const selfBorrow = asyncHandler(async (req, res) => {
 });
 
 const processNextReservation = async (book) => {
+  const runtimeSettings = await getRuntimeSettings();
   const nextReservation = await Reservation.findOne({
     book: book._id,
     status: "Queued",
@@ -153,7 +163,7 @@ const processNextReservation = async (book) => {
 
   nextReservation.status = "Notified";
   nextReservation.notifiedAt = new Date();
-  nextReservation.expiresAt = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+  nextReservation.expiresAt = new Date(Date.now() + runtimeSettings.reservationPickupDays * 24 * 60 * 60 * 1000);
   await nextReservation.save();
 
   await createNotification({
@@ -228,6 +238,12 @@ const returnBook = asyncHandler(async (req, res) => {
     targetId: borrow._id.toString(),
     description: `${req.user.name} processed return for "${book.title}".`,
     ipAddress: req.ip,
+  });
+
+  await recordProductivityActivity({
+    actor: req.user,
+    activityType: "Return",
+    count: 1,
   });
 
   safeEmit("book:stock-updated", { bookId: book._id, availableCopies: book.availableCopies }, `book:${book._id}`);

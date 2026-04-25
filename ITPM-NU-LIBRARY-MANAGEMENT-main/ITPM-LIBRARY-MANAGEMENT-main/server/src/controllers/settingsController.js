@@ -36,6 +36,8 @@ const ensureDefaults = async () => {
   );
 };
 
+const LIBRARIAN_EDITABLE_KEYS = new Set(["borrowPeriodDays", "dailyFineRate", "reservationPickupDays"]);
+
 const getSettings = asyncHandler(async (req, res) => {
   await ensureDefaults();
   const settings = await SystemSetting.find().sort({ label: 1 });
@@ -43,16 +45,22 @@ const getSettings = asyncHandler(async (req, res) => {
 });
 
 const updateSetting = asyncHandler(async (req, res) => {
+  const existing = await SystemSetting.findById(req.params.id);
+  if (!existing) {
+    res.status(404);
+    throw new Error("Setting not found.");
+  }
+
+  if (req.user.role === "Librarian" && !LIBRARIAN_EDITABLE_KEYS.has(existing.key)) {
+    res.status(403);
+    throw new Error("You are not allowed to update this setting.");
+  }
+
   const setting = await SystemSetting.findByIdAndUpdate(
     req.params.id,
     { value: req.body.value, label: req.body.label, description: req.body.description },
     { new: true }
   );
-
-  if (!setting) {
-    res.status(404);
-    throw new Error("Setting not found.");
-  }
 
   res.json(setting);
 });

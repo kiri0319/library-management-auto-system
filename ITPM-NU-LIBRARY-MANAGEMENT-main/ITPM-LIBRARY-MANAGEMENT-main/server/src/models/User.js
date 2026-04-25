@@ -9,6 +9,46 @@ const otpResetSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const otpRegisterSchema = new mongoose.Schema(
+  {
+    code: String,
+    expiresAt: Date,
+  },
+  { _id: false }
+);
+
+const otpEmailChangeSchema = new mongoose.Schema(
+  {
+    code: String,
+    expiresAt: Date,
+  },
+  { _id: false }
+);
+
+const otpDeleteAccountSchema = new mongoose.Schema(
+  {
+    code: String,
+    expiresAt: Date,
+  },
+  { _id: false }
+);
+
+const otpAdminUserActionSchema = new mongoose.Schema(
+  {
+    code: String,
+    expiresAt: Date,
+    action: {
+      type: String,
+      enum: ["update", "delete"],
+    },
+    targetUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  },
+  { _id: false }
+);
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -48,6 +88,15 @@ const userSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    pendingEmail: {
+      type: String,
+      lowercase: true,
+      trim: true,
+    },
     readingHistory: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -55,6 +104,10 @@ const userSchema = new mongoose.Schema(
       },
     ],
     otpReset: otpResetSchema,
+    otpRegister: otpRegisterSchema,
+    otpEmailChange: otpEmailChangeSchema,
+    otpDeleteAccount: otpDeleteAccountSchema,
+    otpAdminUserAction: otpAdminUserActionSchema,
     lastLoginAt: Date,
   },
   {
@@ -62,14 +115,13 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.pre("save", async function savePassword(next) {
+userSchema.pre("save", async function savePassword() {
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  return next();
 });
 
 userSchema.methods.matchPassword = async function matchPassword(enteredPassword) {

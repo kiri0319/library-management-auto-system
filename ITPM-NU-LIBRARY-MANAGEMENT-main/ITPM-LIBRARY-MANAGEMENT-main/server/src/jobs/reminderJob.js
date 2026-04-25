@@ -17,28 +17,33 @@ const runReminderCycle = async () => {
   });
 
   for (const borrow of borrows) {
-    const [user, book] = await Promise.all([User.findById(borrow.user), Book.findById(borrow.book)]);
+    try {
+      const [user, book] = await Promise.all([User.findById(borrow.user), Book.findById(borrow.book)]);
 
-    if (!user || !book) {
-      continue;
+      if (!user || !book) {
+        continue;
+      }
+
+      await sendDueReminderEmail(user.email, user.name, book.title, borrow.dueDate);
+      await createNotification({
+        user: user._id,
+        title: "Due date reminder",
+        message: `"${book.title}" is due on ${borrow.dueDate.toDateString()}.`,
+        type: "Info",
+        link: "/dashboard/student/borrows",
+      });
+
+      borrow.reminderSent = true;
+      await borrow.save();
+    } catch (error) {
+      console.error("Failed to process borrow reminder:", borrow._id?.toString(), error.message);
     }
-
-    await sendDueReminderEmail(user.email, user.name, book.title, borrow.dueDate);
-    await createNotification({
-      user: user._id,
-      title: "Due date reminder",
-      message: `"${book.title}" is due on ${borrow.dueDate.toDateString()}.`,
-      type: "Info",
-      link: "/dashboard/student/borrows",
-    });
-
-    borrow.reminderSent = true;
-    await borrow.save();
   }
 };
 
 const startReminderJob = () => {
   const intervalMs = 12 * 60 * 60 * 1000;
+  runReminderCycle().catch((error) => console.error("Initial reminder cycle failed:", error.message));
   setInterval(() => {
     runReminderCycle().catch((error) => console.error("Reminder job failed:", error.message));
   }, intervalMs);

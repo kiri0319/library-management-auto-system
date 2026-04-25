@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { TrendingUp } from "lucide-react";
 
-const StatCard = ({ label, value, hint, icon: Icon = TrendingUp, tone = "orange", to }) => {
+const StatCard = ({ label, value, hint, icon: Icon = TrendingUp, tone = "orange", to, onClick }) => {
   const reduceMotion = useReducedMotion();
 
   const tones = {
@@ -12,13 +12,17 @@ const StatCard = ({ label, value, hint, icon: Icon = TrendingUp, tone = "orange"
     rose: "from-rose-100 to-white text-rose-700",
   };
 
+  const cardClasses = `panel-card h-full bg-gradient-to-br shadow-sm transition-shadow duration-300 ${tones[tone] || tones.orange} ${
+    to || onClick ? "cursor-pointer hover:shadow-md" : ""
+  }`;
+
   const inner = (
     <motion.div
       layout
       whileHover={reduceMotion ? undefined : { y: -4 }}
       whileTap={reduceMotion ? undefined : { scale: 0.985 }}
       transition={{ type: "spring", stiffness: 420, damping: 28 }}
-      className={`panel-card h-full bg-gradient-to-br shadow-sm transition-shadow duration-300 ${tones[tone] || tones.orange} ${to ? "cursor-pointer hover:shadow-md" : ""}`}
+      className={cardClasses}
     >
       <div className="mb-4 flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{label}</span>
@@ -40,6 +44,18 @@ const StatCard = ({ label, value, hint, icon: Icon = TrendingUp, tone = "orange"
       <Link to={to} className="group block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-2">
         {inner}
       </Link>
+    );
+  }
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="group block h-full w-full rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-2"
+      >
+        {inner}
+      </button>
     );
   }
 

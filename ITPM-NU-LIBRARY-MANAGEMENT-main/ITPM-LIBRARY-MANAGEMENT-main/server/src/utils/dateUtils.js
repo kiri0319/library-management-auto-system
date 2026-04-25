@@ -1,9 +1,9 @@
 const getBorrowPeriodDays = () => Number(process.env.BORROW_PERIOD_DAYS || 14);
 const getDailyFineRate = () => Number(process.env.DAILY_FINE_RATE || 25);
 
-const calculateDueDate = (borrowDate = new Date()) => {
+const calculateDueDate = (borrowDate = new Date(), borrowPeriodDays = getBorrowPeriodDays()) => {
   const dueDate = new Date(borrowDate);
-  dueDate.setDate(dueDate.getDate() + getBorrowPeriodDays());
+  dueDate.setDate(dueDate.getDate() + borrowPeriodDays);
   return dueDate;
 };
 

@@ -30,7 +30,12 @@ const UserManagementPage = () => {
   const [form, setForm] = useState(initialForm);
   const [fieldErrors, setFieldErrors] = useState(initialAdminUserFieldErrors());
   const [editingId, setEditingId] = useState(null);
+  const [pendingAdminAction, setPendingAdminAction] = useState(null);
+  const [adminOtp, setAdminOtp] = useState("");
+  const [infoMessage, setInfoMessage] = useState("");
   const [error, setError] = useState("");
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [userFilters, setUserFilters] = useState({ search: "", role: "All", status: "All" });
 
   const passwordStrength = useMemo(() => getPasswordStrength(form.password), [form.password]);
 
@@ -78,10 +83,21 @@ const UserManagementPage = () => {
 
     try {
       if (editingId) {
+        await libraryApi.users.sendAdminActionOtp({
+          action: "update",
+          targetUserId: editingId,
+        });
         if (form.password) {
           payload.password = form.password;
         }
-        await libraryApi.users.update(editingId, payload);
+        setPendingAdminAction({
+          action: "update",
+          targetUserId: editingId,
+          payload,
+        });
+        setAdminOtp("");
+        setInfoMessage("Verification OTP sent to the selected user's email. Enter OTP below to complete update.");
+        return;
       } else {
         payload.password = form.password;
         await libraryApi.users.create(payload);
@@ -90,6 +106,9 @@ const UserManagementPage = () => {
       setForm(initialForm);
       setFieldErrors(initialAdminUserFieldErrors());
       setEditingId(null);
+      setPendingAdminAction(null);
+      setAdminOtp("");
+      setInfoMessage("");
       loadUsers();
     } catch (submitError) {
       setError(submitError.response?.data?.message || "Could not save user.");
@@ -97,9 +116,11 @@ const UserManagementPage = () => {
   };
 
   const editUser = (user) => {
+    setShowUserForm(true);
     setEditingId(user._id);
     setFieldErrors(initialAdminUserFieldErrors());
     setError("");
+    setInfoMessage("");
     setForm({
       name: user.name,
       email: user.email,
@@ -116,8 +137,51 @@ const UserManagementPage = () => {
       return;
     }
 
-    await libraryApi.users.delete(id);
-    loadUsers();
+    try {
+      await libraryApi.users.sendAdminActionOtp({
+        action: "delete",
+        targetUserId: id,
+      });
+      setPendingAdminAction({
+        action: "delete",
+        targetUserId: id,
+      });
+      setAdminOtp("");
+      setInfoMessage("Verification OTP sent to the selected user's email. Enter OTP below to complete delete.");
+    } catch (deleteError) {
+      setError(deleteError.response?.data?.message || "Could not delete user.");
+    }
+  };
+
+  const completeAdminAction = async () => {
+    if (!pendingAdminAction) {
+      return;
+    }
+    if (!adminOtp.trim()) {
+      setError("OTP is required.");
+      return;
+    }
+
+    try {
+      if (pendingAdminAction.action === "update") {
+        await libraryApi.users.update(pendingAdminAction.targetUserId, {
+          ...pendingAdminAction.payload,
+          otp: adminOtp.trim(),
+        });
+        setForm(initialForm);
+        setFieldErrors(initialAdminUserFieldErrors());
+        setEditingId(null);
+      } else {
+        await libraryApi.users.delete(pendingAdminAction.targetUserId, { otp: adminOtp.trim() });
+      }
+      setPendingAdminAction(null);
+      setAdminOtp("");
+      setInfoMessage("");
+      setError("");
+      loadUsers();
+    } catch (actionError) {
+      setError(actionError.response?.data?.message || "Could not verify OTP.");
+    }
   };
 
   const selectErrorClass = (key) =>
@@ -125,10 +189,21 @@ const UserManagementPage = () => {
       ? "border-rose-400 ring-1 ring-rose-200 focus:border-rose-500 focus:ring-rose-200 dark:border-rose-500/60 dark:ring-rose-900/40"
       : "";
 
+  const filteredUsers = useMemo(() => {
+    const search = userFilters.search.trim().toLowerCase();
+    return users.filter((user) => {
+      const matchesSearch = !search || [user.name, user.email].some((value) => String(value || "").toLowerCase().includes(search));
+      const matchesRole = userFilters.role === "All" || user.role === userFilters.role;
+      const matchesStatus = userFilters.status === "All" || user.status === userFilters.status;
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [users, userFilters]);
+
   return (
-    <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-      <Panel title={editingId ? "Edit user" : "Create user"} subtitle="Admin-only user and role management">
-        <form className="space-y-4" onSubmit={onSubmit} noValidate>
+    <div className={`grid gap-6 ${showUserForm ? "xl:grid-cols-[0.9fr_1.1fr]" : ""}`}>
+      {showUserForm ? (
+        <Panel title={editingId ? "Edit user" : "Create user"} subtitle="Admin-only user and role management">
+          <form className="space-y-4" onSubmit={onSubmit} noValidate>
           <FormField label="Name" name="name" value={form.name} onChange={onChange} error={fieldErrors.name} required />
           <FormField
             label="Email"
@@ -265,7 +340,38 @@ const UserManagementPage = () => {
             error={fieldErrors.address}
             required
           />
+          {infoMessage ? <p className="text-sm text-emerald-700">{infoMessage}</p> : null}
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+          {pendingAdminAction ? (
+            <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-3">
+              <p className="mb-2 text-sm font-medium text-indigo-800">
+                Enter OTP to confirm {pendingAdminAction.action === "update" ? "user update" : "user deletion"}.
+              </p>
+              <div className="flex flex-wrap items-end gap-2">
+                <FormField
+                  label="Verification OTP"
+                  name="adminOtp"
+                  value={adminOtp}
+                  onChange={(event) => setAdminOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="6-digit code"
+                />
+                <button type="button" className="btn-primary" onClick={completeAdminAction}>
+                  Verify and continue
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => {
+                    setPendingAdminAction(null);
+                    setAdminOtp("");
+                    setInfoMessage("");
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : null}
           <div className="flex flex-wrap gap-3">
             <button type="submit" className="btn-primary">
               {editingId ? "Update user" : "Create user"}
@@ -284,13 +390,76 @@ const UserManagementPage = () => {
                 Cancel edit
               </button>
             ) : null}
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => {
+                setShowUserForm(false);
+                setEditingId(null);
+                setForm(initialForm);
+                setFieldErrors(initialAdminUserFieldErrors());
+                setPendingAdminAction(null);
+                setAdminOtp("");
+                setInfoMessage("");
+                setError("");
+              }}
+            >
+              Close form
+            </button>
           </div>
-        </form>
-      </Panel>
+          </form>
+        </Panel>
+      ) : null}
 
       <Panel title="Users" subtitle="All registered accounts in the system">
+        <div className="mb-4">
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => {
+              setShowUserForm(true);
+              setEditingId(null);
+              setForm(initialForm);
+              setFieldErrors(initialAdminUserFieldErrors());
+              setPendingAdminAction(null);
+              setAdminOtp("");
+              setInfoMessage("");
+              setError("");
+            }}
+          >
+            Create user
+          </button>
+        </div>
+        <div className="mb-4 grid gap-3 md:grid-cols-3">
+          <input
+            className="input-field"
+            placeholder="Search by name or email"
+            value={userFilters.search}
+            onChange={(event) => setUserFilters((current) => ({ ...current, search: event.target.value }))}
+          />
+          <select
+            className="input-field"
+            value={userFilters.role}
+            onChange={(event) => setUserFilters((current) => ({ ...current, role: event.target.value }))}
+          >
+            <option value="All">All roles</option>
+            <option value="Admin">Admin</option>
+            <option value="Librarian">Librarian</option>
+            <option value="Student">Student</option>
+          </select>
+          <select
+            className="input-field"
+            value={userFilters.status}
+            onChange={(event) => setUserFilters((current) => ({ ...current, status: event.target.value }))}
+          >
+            <option value="All">All statuses</option>
+            <option value="Active">Active</option>
+            <option value="Restricted">Restricted</option>
+            <option value="Suspended">Suspended</option>
+          </select>
+        </div>
         <DataTable
-          rows={users}
+          rows={filteredUsers}
           columns={[
             { key: "name", label: "Name" },
             { key: "email", label: "Email" },

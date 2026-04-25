@@ -1,11 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, BookOpen, Coins, Users } from "lucide-react";
 import { libraryApi } from "../../api/libraryApi";
 import StatCard from "../../components/common/StatCard";
 import LoadingState from "../../components/common/LoadingState";
-import LineChartCard from "../../components/charts/LineChartCard";
-import BarChartCard from "../../components/charts/BarChartCard";
-import DoughnutChartCard from "../../components/charts/DoughnutChartCard";
 import Panel from "../../components/common/Panel";
 import DataTable from "../../components/common/DataTable";
 import StatusBadge from "../../components/common/StatusBadge";
@@ -14,6 +11,7 @@ import { formatCurrency, formatDateTime } from "../../utils/format";
 const AdminDashboard = () => {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [logFilter, setLogFilter] = useState({ search: "", severity: "All", module: "" });
 
   useEffect(() => {
     libraryApi.dashboard
@@ -22,20 +20,39 @@ const AdminDashboard = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
+  const filteredLogs = useMemo(() => {
+    const search = logFilter.search.trim().toLowerCase();
+    return (dashboard?.recentLogs || []).filter((row) => {
+      const matchesSearch = !search || [row.action, row.description, row.actor?.name]
+        .some((value) => String(value || "").toLowerCase().includes(search));
+      const matchesSeverity = logFilter.severity === "All" || row.severity === logFilter.severity;
+      const matchesModule = !logFilter.module.trim() || String(row.module || "").toLowerCase().includes(logFilter.module.trim().toLowerCase());
+      return matchesSearch && matchesSeverity && matchesModule;
+    });
+  }, [dashboard, logFilter]);
+
+  if (loading || !dashboard) {
     return <LoadingState text="Loading admin analytics..." />;
   }
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Users" value={dashboard.stats.userCount} hint="All system accounts" icon={Users} tone="blue" />
+        <StatCard
+          label="Users"
+          value={dashboard.stats.userCount}
+          hint="All system accounts"
+          icon={Users}
+          tone="blue"
+          to="/dashboard/admin/users"
+        />
         <StatCard
           label="Active Borrows"
           value={dashboard.stats.activeBorrows}
           hint="Books currently checked out"
           icon={BookOpen}
           tone="green"
+          to="/dashboard/admin/reports?preview=borrowing"
         />
         <StatCard
           label="Unpaid Fines"
@@ -43,6 +60,7 @@ const AdminDashboard = () => {
           hint="Outstanding collection total"
           icon={Coins}
           tone="orange"
+          to="/dashboard/admin/reports?preview=fines"
         />
         <StatCard
           label="Suspicious Actions"
@@ -50,33 +68,37 @@ const AdminDashboard = () => {
           hint="High-severity audit events"
           icon={AlertTriangle}
           tone="rose"
-        />
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-3">
-        <LineChartCard
-          title="Borrowing trend"
-          subtitle="Monthly borrowing volume"
-          labels={dashboard.charts.monthlyBorrowing.map((item) => item._id)}
-          values={dashboard.charts.monthlyBorrowing.map((item) => item.count)}
-        />
-        <BarChartCard
-          title="Category popularity"
-          subtitle="Most borrowed categories"
-          labels={dashboard.charts.categoryPopularity.map((item) => item._id)}
-          values={dashboard.charts.categoryPopularity.map((item) => item.count)}
-        />
-        <DoughnutChartCard
-          title="Role mix"
-          subtitle="User distribution by role"
-          labels={dashboard.charts.roleDistribution.map((item) => item._id)}
-          values={dashboard.charts.roleDistribution.map((item) => item.count)}
+          to="/dashboard/admin/activity?severity=High"
         />
       </div>
 
       <Panel title="Recent audit trail" subtitle="Latest activity and system signals">
+        <div className="mb-4 grid gap-3 md:grid-cols-3">
+          <input
+            className="input-field"
+            placeholder="Search action or description"
+            value={logFilter.search}
+            onChange={(event) => setLogFilter((current) => ({ ...current, search: event.target.value }))}
+          />
+          <select
+            className="input-field"
+            value={logFilter.severity}
+            onChange={(event) => setLogFilter((current) => ({ ...current, severity: event.target.value }))}
+          >
+            <option value="All">All severities</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+          <input
+            className="input-field"
+            placeholder="Filter by module"
+            value={logFilter.module}
+            onChange={(event) => setLogFilter((current) => ({ ...current, module: event.target.value }))}
+          />
+        </div>
         <DataTable
-          rows={dashboard.recentLogs}
+          rows={filteredLogs}
           columns={[
             {
               key: "createdAt",

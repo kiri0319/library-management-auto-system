@@ -3,15 +3,20 @@ import { Link } from "react-router-dom";
 import {
   ArrowRight,
   BookOpen,
+  CalendarClock,
   ChevronDown,
   ChevronRight,
   ChevronUp,
+  Clock3,
   Headphones,
   Library,
   Menu,
   Moon,
+  ShieldCheck,
   Search,
+  Sparkles,
   Sun,
+  User,
   Users,
   Wifi,
   X,
@@ -33,13 +38,19 @@ const HERO_STATS = [
   { label: "SATISFACTION", value: "98.7", suffix: "%" },
 ];
 
+const HERO_READING_SCENE = [
+  { id: "single-student", kind: "single", label: "Single student", x: "10%", y: "59%", delay: 0 },
+  { id: "group-students", kind: "group", label: "Group students", x: "88%", y: "59%", delay: 0.4 },
+  { id: "reading-book", kind: "book", label: "Reading book", x: "48%", y: "77%", delay: 0.8 },
+];
+
 const BROWSE_CATEGORIES = [
-  { name: "Computer Science", hint: "Stacks A–D", tone: "from-blue-600/20 to-cyan-500/20" },
-  { name: "Engineering", hint: "Reference & labs", tone: "from-indigo-600/20 to-blue-500/20" },
-  { name: "Medicine & Health", hint: "Latest journals", tone: "from-emerald-600/20 to-teal-500/20" },
-  { name: "Business & Law", hint: "Case studies", tone: "from-amber-600/20 to-orange-500/20" },
-  { name: "Arts & Humanities", hint: "Rare collections", tone: "from-rose-600/20 to-fuchsia-500/20" },
-  { name: "Science & Math", hint: "Research core", tone: "from-violet-600/20 to-purple-500/20" },
+  { name: "Computer Science", hint: "Stacks A–D", accent: "from-blue-600 to-cyan-500" },
+  { name: "Engineering", hint: "Reference & labs", accent: "from-indigo-600 to-blue-500" },
+  { name: "Medicine & Health", hint: "Latest journals", accent: "from-emerald-600 to-teal-500" },
+  { name: "Business & Law", hint: "Case studies", accent: "from-amber-600 to-orange-500" },
+  { name: "Arts & Humanities", hint: "Rare collections", accent: "from-rose-600 to-fuchsia-500" },
+  { name: "Science & Math", hint: "Research core", accent: "from-violet-600 to-purple-500" },
 ];
 
 const SERVICES = [
@@ -65,12 +76,53 @@ const SERVICES = [
   },
 ];
 
+const DISCUSSION_SPACES = [
+  {
+    title: "Conference Room",
+    hours: "9:00 AM to 5:00 PM",
+    duration: "Maximum 3 hours (extendable on request)",
+    occupancy: "12 seats",
+    preference: "Conferences",
+    reservation: "Academic / Non-Academic Staff",
+  },
+  {
+    title: "Collaborative Space",
+    hours: "9:00 AM to 5:00 PM",
+    duration: "Maximum 3 hours (extendable on request)",
+    occupancy: "12 seats",
+    preference: "Group collaboration",
+    reservation: "Academic / Non-Academic Staff",
+  },
+  {
+    title: "Research Commons",
+    hours: "9:00 AM to 5:00 PM",
+    duration: "Maximum 3 hours (extendable on request)",
+    occupancy: "12 seats",
+    preference: "Research discussions",
+    reservation: "Academic / Non-Academic Staff",
+  },
+];
+
+const DISCUSSION_RULES = [
+  "Discussion rooms require a minimum group size of 5-8 students.",
+  "Collaborative space requires a minimum group size of 10-16 students.",
+  "Food and beverages are not allowed inside study spaces (water only).",
+];
+
 const NAV_LINKS = [
   { label: "Home", href: "#top" },
   { label: "Books", href: "#books" },
   { label: "Categories", href: "#categories" },
   { label: "Services", href: "#services" },
 ];
+
+const HERO_QUICK_TAGS = ["IEEE Xplore", "Scopus", "Final year projects", "Machine learning", "Civil engineering"];
+const HERO_EXPERIENCE_TABS = [
+  { id: "learning", label: "Learning Space Reservation" },
+  { id: "discussion", label: "Discussion Space Reservation" },
+  { id: "research", label: "Research Support Desk" },
+];
+
 
 const trimDescription = (text) => {
   if (!text) {
@@ -128,6 +180,7 @@ const LandingPage = () => {
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || "light");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [heroQuery, setHeroQuery] = useState("");
+  const [heroTab, setHeroTab] = useState("learning");
   const [featuredBooks, setFeaturedBooks] = useState([]);
   const [appliedSearch, setAppliedSearch] = useState("");
   const [booksLoading, setBooksLoading] = useState(true);
@@ -253,22 +306,22 @@ const LandingPage = () => {
       </a>
 
       <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-3 lg:px-6">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 rounded-nu glass-surface px-3 py-2 sm:gap-3 sm:px-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 rounded-nu glass-surface bg-slate-900/85 px-3 py-2 sm:gap-3 sm:px-4">
           <Link to="/" className="group flex min-w-0 items-center gap-2">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-nu-primary to-nu-accent text-white shadow-nu transition-transform duration-300 ease-nu group-hover:scale-[1.02] sm:h-9 sm:w-9">
-              <Library className="h-4 w-4" strokeWidth={2.2} />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-nu-primary to-nu-accent text-[11px] font-extrabold tracking-wide text-white shadow-nu transition-transform duration-300 ease-nu group-hover:scale-[1.02] sm:h-9 sm:w-9 sm:text-xs">
+              NU
             </span>
             <span className="truncate font-display text-sm font-bold tracking-tight sm:text-base">
-              NU <span className="text-gradient">LIBRARY</span>
+              <span className="text-white">NU </span><span className="text-gradient">SLIIT</span>
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-5 text-xs font-semibold text-slate-600 dark:text-slate-300 lg:flex lg:gap-6">
+          <nav className="hidden items-center gap-5 text-xs font-semibold text-white/90 lg:flex lg:gap-6">
             {NAV_LINKS.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="transition-colors hover:text-nu-primary dark:hover:text-nu-accent"
+                className="transition-colors hover:text-amber-300"
               >
                 {item.label}
               </a>
@@ -280,7 +333,7 @@ const LandingPage = () => {
               type="button"
               onClick={scrollToSearch}
               whileTap={{ scale: 0.96 }}
-              className="rounded-lg p-1.5 text-slate-600 transition hover:bg-white/50 hover:text-nu-primary dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-nu-accent"
+              className="rounded-lg p-1.5 text-white/90 transition hover:bg-white/15 hover:text-amber-200"
               aria-label="Search catalog"
             >
               <Search className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
@@ -289,7 +342,7 @@ const LandingPage = () => {
               type="button"
               onClick={toggleTheme}
               whileTap={{ scale: 0.96 }}
-              className="rounded-lg p-1.5 text-slate-600 transition hover:bg-white/50 dark:text-slate-300 dark:hover:bg-white/10"
+              className="rounded-lg p-1.5 text-white/90 transition hover:bg-white/15"
               aria-label={theme === "dark" ? "Light mode" : "Dark mode"}
             >
               {theme === "dark" ? (
@@ -301,7 +354,7 @@ const LandingPage = () => {
             <div className="hidden sm:flex sm:items-center sm:gap-1.5">
               <Link
                 to="/login"
-                className="rounded-full px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-white/60 active:scale-[0.96] dark:text-slate-200 dark:hover:bg-white/10"
+                className="rounded-full px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-white/15 active:scale-[0.96]"
               >
                 Sign in
               </Link>
@@ -311,7 +364,7 @@ const LandingPage = () => {
             </div>
             <motion.button
               type="button"
-              className="rounded-lg p-1.5 text-slate-700 dark:text-slate-200 lg:hidden"
+              className="rounded-lg p-1.5 text-white lg:hidden"
               whileTap={{ scale: 0.96 }}
               onClick={() => setMobileOpen((o) => !o)}
               aria-expanded={mobileOpen}
@@ -319,7 +372,7 @@ const LandingPage = () => {
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </motion.button>
-          </div>
+        </div>
         </div>
 
         <AnimatePresence initial={false}>
@@ -369,6 +422,36 @@ const LandingPage = () => {
           ref={heroRef}
           className="relative flex min-h-[100dvh] flex-col overflow-hidden pt-[4.75rem] sm:pt-20"
         >
+          {!reduceMotion
+            ? HERO_READING_SCENE.map((item) => (
+                <motion.div
+                  key={item.id}
+                  className="pointer-events-none absolute z-[3] hidden items-center gap-2 rounded-full border border-white/80 bg-white/92 px-3 py-2 text-slate-900 shadow-[0_8px_18px_-14px_rgba(15,23,42,0.35)] backdrop-blur-md md:flex dark:border-white/20 dark:bg-slate-900/75 dark:text-cyan-100"
+                  style={{ left: item.x, top: item.y }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{
+                    opacity: [0.75, 1, 0.75],
+                    y: [0, -10, 0],
+                    scale: [1, 1.05, 1],
+                  }}
+                  transition={{
+                    duration: 3.8,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: item.delay,
+                  }}
+                  aria-hidden
+                >
+                  {item.kind === "single" ? <User className="h-5 w-5" strokeWidth={2.3} /> : null}
+                  {item.kind === "group" ? <Users className="h-5 w-5" strokeWidth={2.3} /> : null}
+                  {item.kind === "book" ? <BookOpen className="h-5 w-5" strokeWidth={2.3} /> : null}
+                  <span className="text-[11px] font-semibold">{item.label}</span>
+                </motion.div>
+              ))
+            : null}
+          <div className="pointer-events-none absolute left-[8%] top-[26%] h-24 w-24 rounded-full bg-white/25 blur-2xl dark:bg-cyan-400/10" aria-hidden />
+          <div className="pointer-events-none absolute right-[10%] top-[40%] h-20 w-20 rounded-full bg-sky-200/35 blur-2xl dark:bg-blue-400/10" aria-hidden />
+          <div className="pointer-events-none absolute bottom-[18%] left-[15%] h-16 w-16 rounded-full bg-indigo-200/35 blur-2xl dark:bg-indigo-400/10" aria-hidden />
           {reduceMotion ? (
             <div
               className="absolute inset-0 scale-110 bg-cover bg-center opacity-45 dark:opacity-100"
@@ -387,10 +470,12 @@ const LandingPage = () => {
           )}
           {/* Light mode: soft sky-blue wash */}
           <div
-            className="absolute inset-0 bg-gradient-to-b from-sky-100/95 via-sky-50/93 to-sky-100/97 dark:hidden"
+            className="absolute inset-0 bg-gradient-to-b from-sky-100/96 via-sky-100/95 to-sky-200/96 dark:hidden"
             aria-hidden
           />
-          <div className="absolute inset-0 bg-sky-200/25 dark:hidden" aria-hidden />
+          <div className="absolute inset-0 bg-sky-300/35 dark:hidden" aria-hidden />
+          <div className="absolute -left-24 top-24 h-64 w-64 rounded-full bg-sky-300/35 blur-3xl dark:hidden" aria-hidden />
+          <div className="absolute -right-24 bottom-16 h-72 w-72 rounded-full bg-indigo-300/35 blur-3xl dark:hidden" aria-hidden />
           {/* Dark mode: dramatic library overlay */}
           <div className="absolute inset-0 hidden bg-slate-950/65 backdrop-blur-[1px] dark:block" aria-hidden />
           <div
@@ -410,41 +495,53 @@ const LandingPage = () => {
               variants={staggerContainer}
             >
               <motion.div variants={fadeUpBlur}>
-                <span className="inline-flex items-center rounded-full border border-sky-200/90 bg-white/75 px-4 py-2 text-xs font-medium tracking-wide text-slate-700 shadow-sm backdrop-blur-md dark:border-white/20 dark:bg-white/10 dark:text-white/95 sm:text-sm">
+                <span className="inline-flex items-center rounded-full border border-sky-200/90 bg-white/90 px-4 py-2 text-xs font-semibold tracking-wide text-slate-700 shadow-sm backdrop-blur-md dark:border-white/20 dark:bg-white/10 dark:text-white/95 sm:text-sm">
                   • Open 24/7 — Digital &amp; Physical Collection
                 </span>
               </motion.div>
 
               <motion.h1
                 variants={fadeUpBlur}
-                className="mt-8 font-display text-4xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-5xl md:text-6xl lg:text-[3.25rem] lg:leading-[1.15]"
+                className="mt-8 font-display text-4xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-5xl md:text-6xl lg:text-[3.2rem] lg:leading-[1.15]"
              >
                 Discover a World of Knowledge at{" "}
                 <span className="relative inline-block whitespace-nowrap">
                   <span className="text-slate-900 dark:text-white">NU Library</span>
-                  <svg
-                    className="absolute -bottom-1 left-0 w-full text-sky-500 dark:text-cyan-400"
-                    viewBox="0 0 280 14"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden
-                  >
-                    <path
-                      d="M4 10C72 4 140 12 208 6C232 4 256 3 276 6"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
                 </span>
               </motion.h1>
 
-              <motion.p
-                variants={fadeUpBlur}
-                className="mt-6 max-w-2xl text-base leading-relaxed text-white/85 sm:text-lg"
-              >
+              <motion.p variants={fadeUpBlur} className="mt-6 max-w-2xl text-base leading-relaxed text-white/90 sm:text-lg">
                 Explore over 50,000 books, journals, and digital resources. Your academic journey starts here.
               </motion.p>
+
+              <motion.div variants={fadeUpBlur} className="mt-7 flex w-full max-w-3xl flex-wrap justify-center gap-2.5">
+                {HERO_EXPERIENCE_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setHeroTab(tab.id)}
+                    className={`rounded-lg border px-4 py-2 text-xs font-semibold transition sm:text-sm ${
+                      heroTab === tab.id
+                        ? "border-amber-300 bg-amber-300 text-slate-900 shadow-[0_10px_22px_-10px_rgba(245,158,11,0.8)]"
+                        : "border-white/45 bg-slate-900/65 text-white hover:-translate-y-0.5 hover:bg-slate-900/85"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </motion.div>
+
+              <motion.div variants={fadeUpBlur} className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[11px] sm:text-xs">
+                <span className="rounded-full border border-slate-300/80 bg-white/85 px-3 py-1 font-semibold text-slate-700 backdrop-blur dark:text-white">
+                  50K+ catalog records
+                </span>
+                <span className="rounded-full border border-slate-300/70 bg-white/80 px-3 py-1 font-medium text-slate-700 backdrop-blur dark:text-white/90">
+                  Real-time availability
+                </span>
+                <span className="rounded-full border border-slate-300/70 bg-white/80 px-3 py-1 font-medium text-slate-700 backdrop-blur dark:text-white/90">
+                  Multi-device access
+                </span>
+              </motion.div>
 
               <motion.div variants={fadeUpBlur} className="mt-10 w-full max-w-2xl">
                 <form
@@ -452,7 +549,7 @@ const LandingPage = () => {
                     e.preventDefault();
                     handleCatalogSearch();
                   }}
-                  className="flex flex-col gap-2 rounded-2xl border border-white/80 bg-white p-2 shadow-nu-lg sm:flex-row sm:items-center sm:gap-0 sm:p-2 sm:pl-3 dark:border-slate-600 dark:bg-slate-900"
+                  className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_18px_45px_-22px_rgba(15,23,42,0.65)] sm:flex-row sm:items-center sm:gap-0 sm:p-2 sm:pl-3 dark:border-slate-600 dark:bg-slate-900"
                 >
                   <label htmlFor="hero-search" className="sr-only">
                     Search catalog
@@ -482,6 +579,31 @@ const LandingPage = () => {
                     <ArrowRight className="h-4 w-4" />
                   </motion.button>
                 </form>
+                <div className="mt-3 flex flex-wrap justify-center gap-2">
+                  {HERO_QUICK_TAGS.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => {
+                        setHeroQuery(tag);
+                        void loadBooks(tag, { isUserSearch: true });
+                      }}
+                      className="rounded-full border border-white/75 bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-white hover:bg-white dark:border-white/25 dark:bg-white/10 dark:text-white/85 dark:hover:bg-white/15"
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+
+              <motion.div
+                variants={fadeUpBlur}
+                className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/35 bg-slate-900/45 px-4 py-2 text-[11px] font-medium text-white/90 backdrop-blur sm:text-xs"
+              >
+                <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                Live catalog online
+                <span className="h-3 w-px bg-white/25" />
+                Staff support available now
               </motion.div>
 
               <motion.div variants={fadeUpBlur} className="mt-12 flex flex-col items-center gap-3">
@@ -524,7 +646,7 @@ const LandingPage = () => {
                   variants={fadeUpBlur}
                   className="text-center"
                 >
-                  <p className="font-display text-3xl font-bold tabular-nums tracking-tight text-white sm:text-4xl">
+                  <p className="font-display text-3xl font-bold tabular-nums tracking-tight text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)] sm:text-4xl">
                     {s.value}
                     <span className="text-2xl text-cyan-300 sm:text-3xl">{s.suffix}</span>
                   </p>
@@ -541,6 +663,7 @@ const LandingPage = () => {
           id="books"
           className="scroll-mt-28 border-t border-[var(--nu-border)] bg-[var(--nu-bg-muted)] px-4 py-20 sm:px-6 lg:px-8"
         >
+          <div className="mx-auto mb-8 h-px w-full max-w-7xl bg-gradient-to-r from-transparent via-nu-primary/35 to-transparent" />
           <div className="mx-auto max-w-7xl">
             <motion.div
               initial="hidden"
@@ -672,6 +795,7 @@ const LandingPage = () => {
         </section>
 
         <section id="categories" className="scroll-mt-28 px-4 py-20 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-8 h-px w-full max-w-7xl bg-gradient-to-r from-transparent via-nu-primary/25 to-transparent" />
           <div className="mx-auto max-w-7xl">
             <motion.div
               initial="hidden"
@@ -680,17 +804,17 @@ const LandingPage = () => {
               variants={fadeUpBlur}
               className="text-center"
             >
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-nu-primary dark:text-nu-accent">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-nu-primary dark:text-nu-accent">
                 Browse
               </p>
-              <h2 className="mt-2 font-display text-3xl font-bold sm:text-4xl">Explore by subject</h2>
-              <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
-                Curated lanes for every discipline.
+                <h2 className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">Explore by subject</h2>
+              <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                  Professionally curated subject lanes with focused catalog entry points for each discipline.
               </p>
             </motion.div>
 
             <motion.div
-              className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.2 }}
@@ -701,17 +825,44 @@ const LandingPage = () => {
                   key={cat.name}
                   href="#books"
                   variants={fadeUpBlur}
-                  whileHover={reduceMotion ? {} : { y: -2 }}
+                  whileHover={reduceMotion ? {} : { y: -4 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`card-elevated group relative overflow-hidden bg-gradient-to-br ${cat.tone} p-6`}
+                  className="card-elevated group relative overflow-hidden bg-white p-6 dark:bg-slate-900"
                 >
-                  <h3 className="font-display text-xl font-bold">{cat.name}</h3>
-                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{cat.hint}</p>
-                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-nu-primary dark:text-nu-accent">
-                    View catalog <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-                  </span>
+                  <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${cat.accent} opacity-85`} />
+                  <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-slate-100/90 blur-2xl transition-opacity duration-300 group-hover:opacity-90 dark:bg-slate-700/30" />
+                  <div className="relative z-10">
+                    <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
+                      Subject lane
+                    </span>
+                    <h3 className="mt-3 font-display text-xl font-bold tracking-tight">{cat.name}</h3>
+                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{cat.hint}</p>
+                    <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-nu-primary dark:text-nu-accent">
+                      View catalog <ChevronRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                    </span>
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-slate-200 to-transparent opacity-60 transition-opacity group-hover:opacity-90 dark:from-slate-700" />
+                  <span className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-transparent transition group-hover:ring-nu-primary/20" />
                 </motion.a>
               ))}
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={fadeUpBlur}
+              className="mt-8 flex flex-wrap items-center justify-center gap-2 text-xs"
+            >
+              <span className="rounded-full border border-[var(--nu-border)] bg-[var(--nu-surface)] px-3 py-1.5 font-medium text-slate-600 dark:text-slate-300">
+                6 academic clusters
+              </span>
+              <span className="rounded-full border border-[var(--nu-border)] bg-[var(--nu-surface)] px-3 py-1.5 font-medium text-slate-600 dark:text-slate-300">
+                Live catalog linked
+              </span>
+              <span className="rounded-full border border-[var(--nu-border)] bg-[var(--nu-surface)] px-3 py-1.5 font-medium text-slate-600 dark:text-slate-300">
+                Updated each semester
+              </span>
             </motion.div>
           </div>
         </section>
@@ -720,6 +871,7 @@ const LandingPage = () => {
           id="services"
           className="scroll-mt-28 border-t border-[var(--nu-border)] bg-[var(--nu-bg-muted)] px-4 py-20 sm:px-6 lg:px-8"
         >
+          <div className="mx-auto mb-8 h-px w-full max-w-7xl bg-gradient-to-r from-transparent via-nu-primary/35 to-transparent" />
           <div className="mx-auto max-w-7xl">
             <motion.div
               initial="hidden"
@@ -733,6 +885,14 @@ const LandingPage = () => {
                   Services
                 </p>
                 <h2 className="mt-2 font-display text-3xl font-bold sm:text-4xl">Library services</h2>
+                <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                  <span className="rounded-full border border-[var(--nu-border)] bg-[var(--nu-surface)] px-3 py-1 font-medium text-slate-600 dark:text-slate-300">
+                    Staff-assisted
+                  </span>
+                  <span className="rounded-full border border-[var(--nu-border)] bg-[var(--nu-surface)] px-3 py-1 font-medium text-slate-600 dark:text-slate-300">
+                    Digital + physical support
+                  </span>
+                </div>
               </div>
               <p className="max-w-lg text-sm text-slate-600 dark:text-slate-400">
                 Everything the library delivers, structured for real workflows.
@@ -751,17 +911,178 @@ const LandingPage = () => {
                   key={s.title}
                   variants={fadeUpBlur}
                   whileHover={reduceMotion ? {} : { y: -2 }}
-                  className="card-elevated flex gap-5 p-6"
+                  className="card-elevated group relative flex gap-5 overflow-hidden p-6"
                 >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-nu-primary/15 to-nu-accent/20 text-nu-primary dark:text-nu-accent">
+                  <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-white/30 blur-2xl transition-opacity duration-300 group-hover:opacity-90" />
+                  <span className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-nu-primary/15 to-nu-accent/20 text-nu-primary ring-1 ring-nu-primary/20 dark:text-nu-accent">
                     <s.icon className="h-6 w-6" />
                   </span>
-                  <div>
+                  <div className="relative z-10">
+                    <span className="inline-flex rounded-full border border-slate-900/10 bg-white/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
+                      Core service
+                    </span>
                     <h3 className="font-display text-xl font-bold">{s.title}</h3>
                     <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{s.text}</p>
+                    <a
+                      href="#discussion-spaces"
+                      className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-nu-primary transition group-hover:gap-2 dark:text-nu-accent"
+                    >
+                      Learn more <ChevronRight className="h-4 w-4" />
+                    </a>
                   </div>
+                  <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-nu-primary/70 via-nu-accent/70 to-transparent opacity-40 transition-opacity group-hover:opacity-80" />
                 </motion.article>
               ))}
+            </motion.div>
+          </div>
+        </section>
+
+        <section id="discussion-spaces" className="scroll-mt-28 relative overflow-hidden px-4 py-20 sm:px-6 lg:px-8">
+          <div className="pointer-events-none absolute -left-16 top-20 h-56 w-56 rounded-full bg-nu-primary/10 blur-3xl" aria-hidden />
+          <div className="pointer-events-none absolute -right-16 bottom-20 h-56 w-56 rounded-full bg-nu-accent/10 blur-3xl" aria-hidden />
+          <div className="mx-auto max-w-7xl">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={fadeUpBlur}
+              className="text-center"
+            >
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-nu-primary dark:text-nu-accent">
+                Discussion Space Details
+              </p>
+              <h2 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">Library Learning Space Booking</h2>
+              <p className="mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                Space booking facility is available at NU Library for staff and approved academic use. Choose the best
+                environment for conferences, research collaboration, and focused discussion.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
+                <span className="rounded-full border border-[var(--nu-border)] bg-[var(--nu-surface)] px-3 py-1.5 font-medium text-slate-600 dark:text-slate-300">
+                  Staff-only reservations
+                </span>
+                <span className="rounded-full border border-[var(--nu-border)] bg-[var(--nu-surface)] px-3 py-1.5 font-medium text-slate-600 dark:text-slate-300">
+                  Max 3-hour slots
+                </span>
+                <span className="rounded-full border border-[var(--nu-border)] bg-[var(--nu-surface)] px-3 py-1.5 font-medium text-slate-600 dark:text-slate-300">
+                  Professional collaboration spaces
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="mt-12 grid gap-6 md:grid-cols-3"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={staggerContainer}
+            >
+              {DISCUSSION_SPACES.map((space) => (
+                <motion.article
+                  key={space.title}
+                  variants={fadeUpBlur}
+                  whileHover={reduceMotion ? {} : { y: -3 }}
+                  className="card-elevated group relative overflow-hidden p-6"
+                >
+                  <div className="absolute -right-12 -top-12 h-24 w-24 rounded-full bg-white/35 blur-2xl transition-opacity group-hover:opacity-95" />
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-display text-2xl font-bold tracking-tight">{space.title}</h3>
+                      <span className="rounded-full border border-slate-900/10 bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
+                        Premium zone
+                      </span>
+                    </div>
+                    <ul className="mt-4 space-y-2.5 text-sm text-slate-700 dark:text-slate-300">
+                      <li className="flex items-start gap-2">
+                        <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-nu-primary dark:text-nu-accent" />
+                        <span><span className="font-semibold">Operating hours:</span> {space.hours}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-nu-primary dark:text-nu-accent" />
+                        <span><span className="font-semibold">Booking duration:</span> {space.duration}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Users className="mt-0.5 h-4 w-4 shrink-0 text-nu-primary dark:text-nu-accent" />
+                        <span><span className="font-semibold">Occupancy:</span> {space.occupancy}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-nu-primary dark:text-nu-accent" />
+                        <span><span className="font-semibold">Preference:</span> {space.preference}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-nu-primary dark:text-nu-accent" />
+                        <span><span className="font-semibold">Reservation valid:</span> {space.reservation}</span>
+                      </li>
+                    </ul>
+                    <div className="mt-5">
+                      <a
+                        href="#services"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-nu-primary/30 bg-nu-primary/10 px-3 py-1.5 text-xs font-semibold text-nu-primary transition hover:bg-nu-primary hover:text-white dark:border-nu-accent/40 dark:bg-nu-accent/10 dark:text-nu-accent dark:hover:bg-nu-accent dark:hover:text-slate-950"
+                      >
+                        Book request <ChevronRight className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-nu-primary/70 via-nu-accent/70 to-transparent opacity-40 transition-opacity group-hover:opacity-85" />
+                </motion.article>
+              ))}
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={fadeUpBlur}
+              className="mt-8 card-elevated relative overflow-hidden p-6"
+            >
+              <div className="absolute right-0 top-0 h-20 w-20 rounded-bl-3xl bg-gradient-to-br from-nu-primary/15 to-transparent" />
+              <h3 className="font-display text-2xl font-bold">Rules & Regulations for Study Spaces</h3>
+              <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-slate-700 dark:text-slate-300">
+                {DISCUSSION_RULES.map((rule) => (
+                  <li key={rule}>{rule}</li>
+                ))}
+              </ul>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={fadeUpBlur}
+              className="mt-8 card-elevated relative overflow-hidden p-6"
+            >
+              <div className="absolute left-0 top-0 h-20 w-20 rounded-br-3xl bg-gradient-to-br from-nu-accent/15 to-transparent" />
+              <h3 className="font-display text-2xl font-bold">About NU Library</h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                NU Library maintains an up-to-date collection of books, periodicals, and digital resources for
+                Information Technology, Business Management, Engineering, Architecture, Law, Nursing, and Humanities
+                & Sciences. As the central academic resource hub, NU Library continuously expands with core textbooks,
+                teacher-recommended e-books, scholarly databases, and multimedia collections through an automated
+                library system.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={fadeUpBlur}
+              className="mt-8 grid gap-4 md:grid-cols-3"
+            >
+              <div className="card-elevated p-5 text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Response time</p>
+                <p className="mt-2 font-display text-3xl font-bold text-nu-primary">{"< 24h"}</p>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">for room request review</p>
+              </div>
+              <div className="card-elevated p-5 text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Availability</p>
+                <p className="mt-2 font-display text-3xl font-bold text-nu-primary">9AM - 5PM</p>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">staff booking window</p>
+              </div>
+              <div className="card-elevated p-5 text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Support</p>
+                <p className="mt-2 font-display text-3xl font-bold text-nu-primary">On-site</p>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">librarian assistance</p>
+              </div>
             </motion.div>
           </div>
         </section>
@@ -771,7 +1092,7 @@ const LandingPage = () => {
         <div className="mx-auto flex max-w-7xl flex-col gap-10 md:flex-row md:justify-between">
           <div>
             <p className="font-display text-xl font-bold">
-              NU <span className="text-gradient">LIBRARY</span>
+              NU <span className="text-gradient">SLIIT</span>
             </p>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-slate-600 dark:text-slate-400">
               Modern online library management—search, circulation, and role-based dashboards.
@@ -829,7 +1150,7 @@ const LandingPage = () => {
           </div>
         </div>
         <p className="mx-auto mt-12 max-w-7xl border-t border-[var(--nu-border)] pt-8 text-center text-xs text-slate-500">
-          © {new Date().getFullYear()} NU LIBRARY · React · Tailwind · Framer Motion
+          © {new Date().getFullYear()} NU SLIIT · React · Tailwind · Framer Motion
         </p>
       </footer>
 

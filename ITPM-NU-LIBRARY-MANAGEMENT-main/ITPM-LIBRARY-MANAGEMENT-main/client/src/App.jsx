@@ -20,11 +20,17 @@ import BooksPage from "./pages/librarian/BooksPage";
 import BorrowDeskPage from "./pages/librarian/BorrowDeskPage";
 import ReservationQueuePage from "./pages/librarian/ReservationQueuePage";
 import FinesPage from "./pages/librarian/FinesPage";
+import SeatManagementPage from "./pages/librarian/SeatManagementPage";
+import BookHealthPage from "./pages/librarian/BookHealthPage";
+import LibrarianProductivityPage from "./pages/librarian/LibrarianProductivityPage";
+import LibrarianSupportChatPage from "./pages/librarian/LibrarianSupportChatPage";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import CatalogPage from "./pages/student/CatalogPage";
 import MyBorrowsPage from "./pages/student/MyBorrowsPage";
 import MyReservationsPage from "./pages/student/MyReservationsPage";
 import ProfilePage from "./pages/student/ProfilePage";
+import SeatBookingPage from "./pages/student/SeatBookingPage";
+import StudentSupportChatPage from "./pages/student/StudentSupportChatPage";
 
 const HomeRedirect = () => {
   const { user, loading } = useAuth();
@@ -71,13 +77,17 @@ const App = () => (
       </Route>
     </Route>
 
-    <Route element={<ProtectedRoute roles={["Admin", "Librarian"]} />}>
+    <Route element={<ProtectedRoute roles={["Librarian"]} />}>
       <Route element={<DashboardLayout />}>
         <Route path="/dashboard/librarian" element={<LibrarianDashboard />} />
         <Route path="/dashboard/librarian/books" element={<BooksPage />} />
+        <Route path="/dashboard/librarian/book-health" element={<BookHealthPage />} />
+        <Route path="/dashboard/librarian/productivity" element={<LibrarianProductivityPage />} />
         <Route path="/dashboard/librarian/borrows" element={<BorrowDeskPage />} />
         <Route path="/dashboard/librarian/reservations" element={<ReservationQueuePage />} />
         <Route path="/dashboard/librarian/fines" element={<FinesPage />} />
+        <Route path="/dashboard/librarian/seats" element={<SeatManagementPage />} />
+        <Route path="/dashboard/librarian/support-chat" element={<LibrarianSupportChatPage />} />
       </Route>
     </Route>
 
@@ -87,6 +97,8 @@ const App = () => (
         <Route path="/dashboard/student/catalog" element={<CatalogPage />} />
         <Route path="/dashboard/student/borrows" element={<MyBorrowsPage />} />
         <Route path="/dashboard/student/reservations" element={<MyReservationsPage />} />
+        <Route path="/dashboard/student/seats" element={<SeatBookingPage />} />
+        <Route path="/dashboard/student/support-chat" element={<StudentSupportChatPage />} />
         <Route path="/dashboard/student/profile" element={<ProfilePage />} />
       </Route>
     </Route>

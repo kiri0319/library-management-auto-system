@@ -28,6 +28,7 @@ export const initialUserFieldErrors = () => ({
   name: "",
   email: "",
   password: "",
+  confirmPassword: "",
   phone: "",
   address: "",
 });
@@ -100,6 +101,7 @@ export const validateRegisterForm = (form) => {
   const name = form.name.trim();
   const email = form.email.trim();
   const password = form.password;
+  const confirmPassword = form.confirmPassword;
   const phoneDigits = form.phoneDigits.replace(/\D/g, "");
   const address = form.address.trim();
 
@@ -120,6 +122,12 @@ export const validateRegisterForm = (form) => {
   }
 
   validatePasswordValue(password, errors);
+
+  if (!confirmPassword) {
+    errors.confirmPassword = "Confirm password is required.";
+  } else if (confirmPassword !== password) {
+    errors.confirmPassword = "Passwords do not match.";
+  }
 
   if (!phoneDigits) {
     errors.phone = "Enter your 9-digit mobile number (after +94).";

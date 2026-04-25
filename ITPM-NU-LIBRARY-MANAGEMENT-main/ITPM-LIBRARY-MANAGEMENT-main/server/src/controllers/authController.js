@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler");
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
 const { logActivity } = require("../services/activityService");
-const { sendOtpEmail } = require("../services/emailService");
+const { sendOtpEmail, sendRegistrationOtpEmail } = require("../services/emailService");
 
 const buildAuthResponse = (user) => ({
   _id: user._id,
@@ -26,22 +26,71 @@ const registerStudent = asyncHandler(async (req, res) => {
     throw new Error("Name, email, and password are required.");
   }
 
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
+  let user = await User.findOne({ email });
+
+  if (user && user.isVerified) {
     res.status(409);
     throw new Error("Email is already registered.");
   }
 
-  const user = await User.create({
-    name,
-    email,
-    password,
-    role: "Student",
-    phone,
-    address,
-    studentId: `STU-${Date.now().toString().slice(-6)}`,
-    membershipCode: `LIB-${Date.now().toString().slice(-8)}`,
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  if (user) {
+    // Resend OTP for existing unverified user
+    user.otpRegister = {
+      code: otp,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+    };
+    await user.save();
+  } else {
+    // Create new user
+    user = await User.create({
+      name,
+      email,
+      password,
+      role: "Student",
+      phone,
+      address,
+      studentId: `STU-${Date.now().toString().slice(-6)}`,
+      membershipCode: `LIB-${Date.now().toString().slice(-8)}`,
+      isVerified: false,
+      otpRegister: {
+        code: otp,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+  }
+
+  await sendRegistrationOtpEmail(user.email, user.name, otp);
+
+  res.status(200).json({
+    message: "OTP sent successfully. Check your email to verify your account.",
+    otpPreview: process.env.NODE_ENV === "production" ? undefined : otp,
   });
+});
+
+const verifyRegistrationOtp = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    res.status(400);
+    throw new Error("Email and OTP are required.");
+  }
+
+  const user = await User.findOne({ email });
+  if (
+    !user ||
+    !user.otpRegister?.code ||
+    user.otpRegister.code !== otp ||
+    new Date(user.otpRegister.expiresAt) < new Date()
+  ) {
+    res.status(400);
+    throw new Error("Invalid or expired OTP.");
+  }
+
+  user.isVerified = true;
+  user.otpRegister = undefined;
+  await user.save();
 
   await logActivity({
     actor: user._id,
@@ -50,10 +99,10 @@ const registerStudent = asyncHandler(async (req, res) => {
     module: "AUTH",
     targetType: "User",
     targetId: user._id.toString(),
-    description: `${user.name} registered as a student.`,
+    description: `${user.name} verified email and completed registration.`,
   });
 
-  res.status(201).json(buildAuthResponse(user));
+  res.status(200).json(buildAuthResponse(user));
 });
 
 const login = asyncHandler(async (req, res) => {
@@ -70,6 +119,11 @@ const login = asyncHandler(async (req, res) => {
     });
     res.status(401);
     throw new Error("Invalid email or password.");
+  }
+
+  if (!user.isVerified) {
+    res.status(403);
+    throw new Error("Please verify your email before logging in.");
   }
 
   user.lastLoginAt = new Date();
@@ -167,6 +221,7 @@ const resetPassword = asyncHandler(async (req, res) => {
 
 module.exports = {
   registerStudent,
+  verifyRegistrationOtp,
   login,
   getMe,
   forgotPassword,

@@ -33,6 +33,12 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (payload) => {
     const { data } = await libraryApi.auth.register(payload);
+    // Do not persist auth here, as registration now sends OTP
+    return data;
+  };
+
+  const verifyOtp = async (payload) => {
+    const { data } = await libraryApi.auth.verifyOtp(payload);
     persistAuth(data);
     return data;
   };
@@ -70,6 +76,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         register,
+        verifyOtp,
         logout,
         refreshUser,
         setUser,

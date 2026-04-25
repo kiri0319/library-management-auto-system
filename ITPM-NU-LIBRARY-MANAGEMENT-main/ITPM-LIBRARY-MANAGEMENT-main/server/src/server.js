@@ -4,6 +4,7 @@ const connectDB = require("./config/db");
 const app = require("./app");
 const { initSocket } = require("./config/socket");
 const { startReminderJob } = require("./jobs/reminderJob");
+const { startSeatAutoReleaseJob } = require("./jobs/seatAutoReleaseJob");
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ const startServer = async () => {
   const server = http.createServer(app);
   initSocket(server);
   startReminderJob();
+  startSeatAutoReleaseJob();
 
   server.on("error", (error) => {
     if (error.code === "EADDRINUSE") {

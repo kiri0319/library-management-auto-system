@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { libraryApi } from "../../api/libraryApi";
 import Panel from "../../components/common/Panel";
 import DataTable from "../../components/common/DataTable";
@@ -8,9 +9,16 @@ import { formatDateTime } from "../../utils/format";
 import { useSocketApp } from "../../hooks/useSocketApp";
 
 const ActivityLogsPage = () => {
+  const [searchParams] = useSearchParams();
+  const severityParam = searchParams.get("severity") || "";
   const [filters, setFilters] = useState({ search: "", severity: "", module: "" });
   const [logs, setLogs] = useState([]);
   const { liveActivities } = useSocketApp();
+
+  useEffect(() => {
+    if (!severityParam) return;
+    setFilters((current) => ({ ...current, severity: severityParam }));
+  }, [severityParam]);
 
   const loadLogs = () => {
     libraryApi.activityLogs.list(filters).then(({ data }) => setLogs(data));
@@ -18,7 +26,7 @@ const ActivityLogsPage = () => {
 
   useEffect(() => {
     loadLogs();
-  }, []);
+  }, [filters.search, filters.severity, filters.module]);
 
   useEffect(() => {
     if (liveActivities.length) {

@@ -8,15 +8,38 @@ import { formatDate } from "../../utils/format";
 
 const ReservationQueuePage = () => {
   const [reservations, setReservations] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("All");
 
   useEffect(() => {
     libraryApi.reservations.list().then(({ data }) => setReservations(data));
   }, []);
 
+  const statusOptions = [...new Set(reservations.map((reservation) => reservation.status).filter(Boolean))];
+  const filteredReservations = statusFilter === "All"
+    ? reservations
+    : reservations.filter((reservation) => reservation.status === statusFilter);
+
   return (
-    <Panel title="Waiting queue" subtitle="Track student reservations and current queue order">
+    <Panel
+      title="Waiting queue"
+      subtitle="Track student reservations and current queue order"
+      action={(
+        <select
+          className="input-field min-w-40"
+          value={statusFilter}
+          onChange={(event) => setStatusFilter(event.target.value)}
+        >
+          <option value="All">All statuses</option>
+          {statusOptions.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+      )}
+    >
       <DataTable
-        rows={reservations}
+        rows={filteredReservations}
         columns={[
           {
             key: "user",

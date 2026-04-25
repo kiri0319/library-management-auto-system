@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { libraryApi } from "../../api/libraryApi";
 import Panel from "../../components/common/Panel";
 import FormField from "../../components/common/FormField";
@@ -6,6 +6,7 @@ import FormField from "../../components/common/FormField";
 const SettingsPage = () => {
   const [settings, setSettings] = useState([]);
   const [message, setMessage] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     libraryApi.settings.list().then(({ data }) => setSettings(data));
@@ -24,11 +25,31 @@ const SettingsPage = () => {
     setTimeout(() => setMessage(""), 1800);
   };
 
+  const filteredSettings = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) {
+      return settings;
+    }
+    return settings.filter((setting) =>
+      [setting.label, setting.key, setting.description].some((value) =>
+        String(value || "").toLowerCase().includes(q)
+      )
+    );
+  }, [settings, search]);
+
   return (
     <Panel title="System settings" subtitle="Admin controls for circulation defaults and reminders">
       {message ? <p className="mb-4 text-sm text-emerald-700">{message}</p> : null}
+      <div className="mb-4">
+        <input
+          className="input-field"
+          placeholder="Filter settings by label, key, or description"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+      </div>
       <div className="space-y-4">
-        {settings.map((setting) => (
+        {filteredSettings.map((setting) => (
           <div key={setting._id} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
             <div className="grid gap-4 md:grid-cols-[1fr_180px_auto] md:items-end">
               <div>

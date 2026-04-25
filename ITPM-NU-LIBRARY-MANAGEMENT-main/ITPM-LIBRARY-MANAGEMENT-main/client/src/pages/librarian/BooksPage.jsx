@@ -7,6 +7,50 @@ import DataTable from "../../components/common/DataTable";
 import FormField from "../../components/common/FormField";
 import StatusBadge from "../../components/common/StatusBadge";
 
+const getTitlePrefix = (title) =>
+  (title || "")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toUpperCase()
+    .slice(0, 3)
+    .padEnd(3, "X");
+
+const hashToPositiveInt = (value) => {
+  const text = String(value || "");
+  let hash = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+};
+
+const buildAutoIsbn = (title) => {
+  const prefix = getTitlePrefix(title);
+  const nineDigits = String(hashToPositiveInt(`${title}-isbn`) % 1000000000).padStart(9, "0");
+  return `${prefix}${nineDigits}`; // 12 chars: 3 letters + 9 numbers
+};
+
+const buildAutoShelfLocation = (title) => {
+  const prefix = getTitlePrefix(title);
+  const threeDigits = String(hashToPositiveInt(`${title}-shelf`) % 1000).padStart(3, "0");
+  return `${prefix}-${threeDigits}`;
+};
+
+const buildAutoDescription = (title, categoryName) => {
+  if (!title) return "";
+  const categoryText = categoryName || "library";
+  return `${title} is part of the ${categoryText.toLowerCase()} collection for library lending and reference.`;
+};
+
+const buildAutoTags = (title, categoryName) => {
+  const core = title
+    .split(/\s+/)
+    .map((word) => word.replace(/[^a-zA-Z0-9]/g, "").toLowerCase())
+    .filter(Boolean)
+    .slice(0, 2);
+  const categoryTag = categoryName ? categoryName.toLowerCase() : "library";
+  return [...new Set([categoryTag, ...core])].join(", ");
+};
+
 const emptyBookForm = {
   title: "",
   description: "",
@@ -22,6 +66,7 @@ const emptyBookForm = {
 
 const BooksPage = () => {
   const [books, setBooks] = useState([]);
+  const [stockFilter, setStockFilter] = useState("All");
   const [categories, setCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
   const [bookForm, setBookForm] = useState(emptyBookForm);
@@ -31,6 +76,12 @@ const BooksPage = () => {
   const [coverFile, setCoverFile] = useState(null);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState(null);
   const [coverError, setCoverError] = useState("");
+  const [autoLocks, setAutoLocks] = useState({
+    isbn: false,
+    shelfLocation: false,
+    description: false,
+    tags: false,
+  });
   const coverInputRef = useRef(null);
 
   const loadAll = () => {
@@ -50,7 +101,25 @@ const BooksPage = () => {
   }, []);
 
   const onBookChange = (event) => {
-    setBookForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+    const { name, value } = event.target;
+    if (name === "isbn" || name === "shelfLocation" || name === "description" || name === "tags") {
+      setAutoLocks((current) => ({ ...current, [name]: true }));
+    }
+    setBookForm((current) => {
+      const next = { ...current, [name]: value };
+      if (editingId) {
+        return next;
+      }
+
+      if (name === "title" || name === "category") {
+        const categoryName = categories.find((item) => item._id === next.category)?.name || "";
+        if (!autoLocks.isbn) next.isbn = buildAutoIsbn(next.title);
+        if (!autoLocks.shelfLocation) next.shelfLocation = buildAutoShelfLocation(next.title);
+        if (!autoLocks.description) next.description = buildAutoDescription(next.title, categoryName);
+        if (!autoLocks.tags) next.tags = buildAutoTags(next.title, categoryName);
+      }
+      return next;
+    });
   };
 
   const resetCoverSelection = () => {
@@ -119,6 +188,12 @@ const BooksPage = () => {
 
       resetCoverSelection();
       setBookForm(emptyBookForm);
+      setAutoLocks({
+        isbn: false,
+        shelfLocation: false,
+        description: false,
+        tags: false,
+      });
       setEditingId(null);
       loadAll();
     } catch (err) {
@@ -141,6 +216,12 @@ const BooksPage = () => {
       shelfLocation: book.shelfLocation || "",
       tags: (book.tags || []).join(", "),
       coverImage: book.coverImage || "",
+    });
+    setAutoLocks({
+      isbn: true,
+      shelfLocation: true,
+      description: true,
+      tags: true,
     });
   };
 
@@ -166,6 +247,12 @@ const BooksPage = () => {
     setAuthorName("");
     loadAll();
   };
+
+  const dynamicStockOptions = books.map((book) => book.stockStatus).filter(Boolean);
+  const stockOptions = [...new Set(["Available", "Unavailable", ...dynamicStockOptions])];
+  const filteredBooks = stockFilter === "All"
+    ? books
+    : books.filter((book) => book.stockStatus === stockFilter);
 
   return (
     <div className="space-y-6">
@@ -270,6 +357,12 @@ const BooksPage = () => {
                     resetCoverSelection();
                     setEditingId(null);
                     setBookForm(emptyBookForm);
+                    setAutoLocks({
+                      isbn: false,
+                      shelfLocation: false,
+                      description: false,
+                      tags: false,
+                    });
                   }}
                 >
                   Cancel edit
@@ -311,9 +404,26 @@ const BooksPage = () => {
         </div>
       </div>
 
-      <Panel title="Catalog inventory" subtitle="Books, stock status, and editing controls">
+      <Panel
+        title="Catalog inventory"
+        subtitle="Books, stock status, and editing controls"
+        action={(
+          <select
+            className="input-field min-w-40"
+            value={stockFilter}
+            onChange={(event) => setStockFilter(event.target.value)}
+          >
+            <option value="All">All stock</option>
+            {stockOptions.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        )}
+      >
         <DataTable
-          rows={books}
+          rows={filteredBooks}
           columns={[
             {
               key: "book",
