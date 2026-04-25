@@ -78,6 +78,9 @@ online-library-management-system/
 - Issue and return books
 - Use QR return scanning
 - Monitor waiting queue and fines
+- Track book health and maintenance insights
+- Review librarian productivity metrics
+- Handle student support chat requests
 
 ### Student
 
@@ -88,6 +91,8 @@ online-library-management-system/
 - Manage reservations
 - View QR membership card
 - Track due dates and fines
+- Book and manage reading seats
+- Contact librarians through support chat
 
 ## Backend Collections
 
@@ -114,7 +119,7 @@ npm install
 
 ### Server
 
-Copy [server/.env.example](/C:/Users/kavithushan/Desktop/ITPM&library/server/.env.example) to `server/.env` and configure:
+Copy `server/.env.example` to `server/.env` and configure:
 
 ```env
 PORT=5000
@@ -133,7 +138,7 @@ MAIL_FROM=no-reply@library.local
 
 ### Client
 
-Copy [client/.env.example](/C:/Users/kavithushan/Desktop/ITPM&library/client/.env.example) to `client/.env`:
+Copy `client/.env.example` to `client/.env`:
 
 ```env
 VITE_API_URL=http://localhost:5000/api
@@ -176,6 +181,10 @@ npm run dev
 - `/api/reports`
 - `/api/activity-logs`
 - `/api/settings`
+- `/api/book-health`
+- `/api/librarian-productivity`
+- `/api/seats`
+- `/api/support-chat`
 
 ## Notes
 
